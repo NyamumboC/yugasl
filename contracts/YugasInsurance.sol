@@ -1,34 +1,139 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.6.0 <0.9.0;
 
-// Uncomment this line to use console.log
-// import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-contract Lock {
-    uint public unlockTime;
-    address payable public owner;
+contract yugasInsurance {
 
-    event Withdrawal(uint amount, uint when);
+    address payable insurer; 
 
-    constructor(uint _unlockTime) payable {
-        require(
-            block.timestamp < _unlockTime,
-            "Unlock time should be in the future"
-        );
+    AggregatorV3Interface internal priceFeed;
 
-        unlockTime = _unlockTime;
-        owner = payable(msg.sender);
+    /**
+     * Network: Mumbai
+     * Aggregator: Matic/USD
+     * Address: 0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada
+     */
+
+    constructor() payable {
+        insurer = payable(msg.sender);
+        priceFeed = AggregatorV3Interface(0xd0D5e3DB44DE05E9F294BB0a3bEEaF030DE24Ada);
+    
     }
 
-    function withdraw() public {
-        // Uncomment this line, and the import of "hardhat/console.sol", to print a log in your terminal
-        // console.log("Unlock time is %o and block timestamp is %o", unlockTime, block.timestamp);
+    function getLatestPrice() public view returns (int) {
+        (
+            ,
+            /*uint80 roundID*/ int price /*uint startedAt*/ /*uint timeStamp*/ /*uint80 answeredInRound*/,
+            ,
+            ,
 
-        require(block.timestamp >= unlockTime, "You can't withdraw yet");
-        require(msg.sender == owner, "You aren't the owner");
+        ) = priceFeed.latestRoundData();
+        return price;
+    }
 
-        emit Withdrawal(address(this).balance, block.timestamp);
+    event NewClaim(address indexed from, uint256 timestamp, string regNo, uint256 applicationId, string claimId, string _claimDescription);
+    struct Claim {address giver; uint256 timestamp; string regNo; uint256 applicationId; string claimId; string _claimDescription;}
+    Claim[] claim;
+    function getAllClaim() public view returns (Claim[] memory) {
+        return claim;
+    }
 
-        owner.transfer(address(this).balance);
+    event NewClaimStatus(uint256 timestamp, string regNo, uint256 applicationId, string statusId, uint256 amount);
+    struct ClaimStatus{uint256 timestamp; string regNo; uint256 applicationId; string statusId; uint256 amount;}
+    ClaimStatus[] claimstatus;
+    function getAllClaimStatus() public view returns (ClaimStatus[] memory) {
+        return claimstatus;
+    }
+
+    event NewPolicy (
+        address indexed from,
+        uint256 timestamp,
+        string regNo,
+        uint256 premium,
+        bytes32 riskId,
+        uint256 applicationId
+    );
+
+    struct Policy {
+        address giver;
+        uint256 timestamp;
+        string regNo;
+        uint256 premium;
+        bytes32 riskId;
+        uint256 applicationId;
+    }
+
+    Policy[] policy;
+
+    function getAllPolicy() public view returns (Policy[] memory) {
+        return policy;
+    }
+
+    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            result := mload(add(source, 32))
+        }
+    }
+
+    function applyForPolicy(
+        string memory _brand,
+        string memory _model,
+        string memory _regNo,
+        uint256 _year,
+        uint256 _chassis,
+        uint256 _price
+    )
+    public payable {
+        require(_price > 0, "ERROR:INVALID_PRICE");
+        uint256 _premium = (_price * 6/10) * uint(int(getLatestPrice()))/100000000;
+        bytes32 _riskId = keccak256(abi.encodePacked(_brand, _model, _regNo));
+        uint256[] memory payoutOptions = new uint256[](1);
+        payoutOptions[0] = _price;
+        uint256 _applicationId = (_year + _premium + _price + _chassis);
+        emit NewPolicy(msg.sender, block.timestamp, _regNo, _premium, _riskId, _applicationId);
+        policy.push(Policy(msg.sender, block.timestamp, _regNo, _premium, _riskId, _applicationId));
+    }
+
+
+    function createClaim(
+        string memory _regNo,
+        string memory _claimDescription,
+        uint256 _applicationId
+        ) 
+    external {
+            string memory _claimId = string.concat(_regNo, Strings.toString(_applicationId));
+            emit NewClaim(msg.sender, block.timestamp, _regNo, _applicationId, _claimId, _claimDescription);
+            claim.push(Claim(msg.sender, block.timestamp, _regNo, _applicationId, _claimId, _claimDescription));
+    }
+
+    function declineClaim(
+        string memory _regNo,
+        uint256 _applicationId
+        ) 
+    external {
+        string memory _statusId = string.concat("declined", _regNo, Strings.toString(_applicationId));
+        uint256 _amount = 0;
+        emit NewClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount);
+        claimstatus.push(ClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount));
+    }
+
+    function confirmClaim(
+        string memory _regNo,
+        uint256 _price,
+        uint256 _applicationId
+        ) 
+    public payable {
+        string memory _statusId = string.concat("paid", _regNo, Strings.toString(_applicationId));
+        uint256 _amount = (_price * 8/10) * uint(int(getLatestPrice()))/100000000;
+        emit NewClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount);
+        claimstatus.push(ClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount));
     }
 }
