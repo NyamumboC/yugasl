@@ -5,13 +5,13 @@ const main = async () => {
   console.log("Deploying contracts with account: ", deployer.address);
   console.log("Account balance: ", accountBalance.toString());
 
-  const Token = await hre.ethers.getContractFactory("yugasInsurance");
-  const portal = await Token.deploy({
+  const Token = await hre.ethers.getContractFactory("YugasInsurance");
+  const insurance = await Token.deploy({
     value: hre.ethers.utils.parseEther("0.1"),
   });
-  await portal.deployed();
+  await insurance.deployed();
 
-  console.log("PayPortal address: ", portal.address);
+  console.log("YugasInsurance address: ", insurance.address);
 };
 
 const runMain = async () => {
