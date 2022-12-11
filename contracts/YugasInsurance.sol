@@ -109,7 +109,7 @@ contract yugasInsurance {
         uint256 _applicationId
         ) 
     external {
-            string memory _claimId = string.concat(_regNo, Strings.toString(_applicationId));
+            string memory _claimId = string(abi.encodePacked(_regNo, Strings.toString(_applicationId)));
             emit NewClaim(msg.sender, block.timestamp, _regNo, _applicationId, _claimId, _claimDescription);
             claim.push(Claim(msg.sender, block.timestamp, _regNo, _applicationId, _claimId, _claimDescription));
     }
@@ -119,7 +119,7 @@ contract yugasInsurance {
         uint256 _applicationId
         ) 
     external {
-        string memory _statusId = string.concat("declined", _regNo, Strings.toString(_applicationId));
+        string memory _statusId = string(abi.encodePacked("declined", _regNo, Strings.toString(_applicationId)));
         uint256 _amount = 0;
         emit NewClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount);
         claimstatus.push(ClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount));
@@ -131,7 +131,7 @@ contract yugasInsurance {
         uint256 _applicationId
         ) 
     public payable {
-        string memory _statusId = string.concat("paid", _regNo, Strings.toString(_applicationId));
+        string memory _statusId = string(abi.encodePacked("paid", _regNo, Strings.toString(_applicationId)));
         uint256 _amount = (_price * 8/10) * uint(int(getLatestPrice()))/100000000;
         emit NewClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount);
         claimstatus.push(ClaimStatus(block.timestamp, _regNo, _applicationId, _statusId, _amount));

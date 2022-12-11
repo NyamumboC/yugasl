@@ -1,7 +1,7 @@
 {
   "name": "yugasl",
   "version": "1.0.0",
-  "description": "",
+  "description": "A Blockchain based car insurance that enables issuance of premiums and payouts at the latest prices by using Chainlink.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
