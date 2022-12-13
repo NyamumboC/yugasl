@@ -34,14 +34,16 @@ const Home: NextPage = () => {
   const [year, setYear] = useState<number | undefined>(1);
   const [chassis, setChassis] = useState<number | undefined>(1);
   const [price, setPrice] = useState<number | undefined>(1);
-
+  const [riskId, setRiskId] = useState<number | undefined>(1);
+  const [applicationId, setApplicationId] = useState<number | undefined>(1);
+  const [premium, setPremium] = useState<number | undefined>(1);
 
   /*
    * All state property to store policies and claims
    */
-  const [allPolicy, setAllPolicy] = useState([]);
-  const [allClaim, setAllClaim] = useState([]);
-  const [allClaimStatus, setAllClaimStatus] = useState([]);
+  const [allPolicy, setAllPolicy] = useState<any[]>([]);
+  const [allClaim, setAllClaim] = useState<any[]>([]);
+  const [allClaimStatus, setAllClaimStatus] = useState<any[]>([]);
 
   const checkIfWalletIsConnected = async () => {
     try {
