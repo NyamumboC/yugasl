@@ -1,7 +1,9 @@
 # [Yugasl](https://github.com/NyamumboC/yugasl.git)
 #### By [Nyamumbo Charles](https://github.com/NyamumboC/yugasl.git)
 ### Description
-A Blockchain based car insurance that enables issuance of premiums and payouts at the latest prices by using Chainlink.
+A Blockchain based car insurance that enables booking of policy covers through issuance of premiums and payouts at the latest prices by using Chainlink. Claims are also applied through the blockchain and once approved payouts are made through blockchain.
+
+The insured can also record claims 
 
 **Cloning**
 Fork the repository and Git clone to your local machine. Access the file and run the program on the code editor, ubuntu, mac or windows terminal.
